@@ -1,0 +1,134 @@
+{
+  "student_prompt": "problem 4 - add the MCP server to viber coder and test each tool ... once you're connected, test each of your three MCP tools.",
+  "connection": {
+    "config_file": ".mcp.json",
+    "server": "campus-customs",
+    "transport": "stdio",
+    "config": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "mcp_server/server.py"
+      ],
+      "env": {}
+    }
+  },
+  "database": "data/campus_customs_new.db",
+  "tools_listed_by_server": [
+    "check_stock_by_size",
+    "get_vendor_invoice_status",
+    "get_lease_rent_due"
+  ],
+  "run_at_utc": "2026-11-07T12:46:32+00:00",
+  "all_match_db": true,
+  "tests": [
+    {
+      "ticket": 103,
+      "prompt": "Using our MCP server, how many size M navy hoodies (CC-HOOD-NAVY) do we have, and how short are we for the Yale AI Club's 20?",
+      "tool": "check_stock_by_size",
+      "arguments": {
+        "sku": "CC-HOOD-NAVY",
+        "size": "M",
+        "qty_needed": 20
+      },
+      "tool_output": {
+        "found": true,
+        "sku": "CC-HOOD-NAVY",
+        "name": "Basic Hoodie Big Yale",
+        "size": "M",
+        "qty_on_hand": 8,
+        "location": "Aisle A",
+        "qty_needed": 20,
+        "shortfall": 12,
+        "can_fill_from_stock": false
+      },
+      "db_check": {
+        "query": "SELECT qty FROM inventory WHERE sku=? AND size=?",
+        "expected_from_db": {
+          "qty_on_hand": 8,
+          "name": "Basic Hoodie Big Yale",
+          "shortfall": 12
+        },
+        "matches_db": true,
+        "mismatches": {}
+      }
+    },
+    {
+      "ticket": 101,
+      "prompt": "Using our MCP server, will Bulldog Print Co (vendor 1) ship the size S tee reprint, or is an open invoice blocking it?",
+      "tool": "get_vendor_invoice_status",
+      "arguments": {
+        "vendor_id": 1
+      },
+      "tool_output": {
+        "found": true,
+        "today": "2026-08-31",
+        "vendor_id": 1,
+        "vendor_name": "Bulldog Print Co",
+        "specialty": "apparel reprint",
+        "lead_days": 5,
+        "open_invoices": [
+          {
+            "invoice_id": 501,
+            "amount": 840.0,
+            "due_date": "2026-08-28",
+            "status": "open",
+            "description": "Rush reprint CC-TEE-WHITE S",
+            "days_overdue": 3,
+            "is_overdue": true
+          }
+        ],
+        "open_balance": 840.0,
+        "will_ship": false
+      },
+      "db_check": {
+        "query": "SELECT * FROM vendors WHERE id=?; SELECT * FROM invoices WHERE vendor_id=? AND status='open'",
+        "expected_from_db": {
+          "vendor_name": "Bulldog Print Co",
+          "lead_days": 5,
+          "open_invoice_ids": [
+            501
+          ],
+          "open_balance": 840.0,
+          "will_ship": false,
+          "today": "2026-08-31"
+        },
+        "matches_db": true,
+        "mismatches": {}
+      }
+    },
+    {
+      "ticket": 102,
+      "prompt": "Using our MCP server, how much rent is due on lease 1, when, and does checking cover it?",
+      "tool": "get_lease_rent_due",
+      "arguments": {
+        "lease_id": 1
+      },
+      "tool_output": {
+        "found": true,
+        "today": "2026-08-31",
+        "lease_id": 1,
+        "space_name": "Chapel Street shop",
+        "landlord": "Elm City Properties",
+        "monthly_rent": 2400.0,
+        "next_due": "2026-09-02",
+        "days_until_due": 2,
+        "is_overdue": false,
+        "notes": null,
+        "checking_balance": 3400.0,
+        "cash_covers_rent": true
+      },
+      "db_check": {
+        "query": "SELECT * FROM leases WHERE id=?; SELECT balance FROM cash_accounts WHERE name='checking'",
+        "expected_from_db": {
+          "monthly_rent": 2400.0,
+          "next_due": "2026-09-02",
+          "checking_balance": 3400.0,
+          "today": "2026-08-31"
+        },
+        "matches_db": true,
+        "mismatches": {}
+      }
+    }
+  ]
+}

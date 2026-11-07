@@ -1,0 +1,18 @@
+# secrets: never commit the real key
+.env
+
+# local environments and builds
+.venv/
+__pycache__/
+*.pyc
+frontend/node_modules/
+frontend/dist/
+
+# course download (the DBs are committed unzipped under data/)
+data.zip
+
+# temp files
+*.tgz
+*.json.tmp
+*.db-journal
+.DS_Store
